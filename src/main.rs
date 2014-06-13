@@ -43,7 +43,6 @@ fn main() {
         let mut state = State { state: 1 };
         let state_ptr = &mut state as *mut _ as *mut c_void;
         let mut state_back = unsafe { &mut *(state_ptr as *mut State) };
-        println!("here")
         println!("{:i}", state_back.state)
         //unsafe { tsm_screen_draw(screen.screen, draw_cb, state_ptr) };
         screen.draw(draw_cb, state_ptr);

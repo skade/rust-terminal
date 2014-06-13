@@ -34,7 +34,7 @@ SOURCE_FILES = $(shell test -e src/ && find src/ -type f)
 COMPILER = rustc
 
 # For release:
-  COMPILER_FLAGS = -C link-args="-ltsm"
+  COMPILER_FLAGS = -L libtsm/.libs -C link-args="-ltsm"
 # For debugging:
 # COMPILER_FLAGS = -g
 
@@ -44,6 +44,7 @@ RUSTDOC = rustdoc
 TARGET = $(shell rustc --version | grep "host: " | cut -c 7-)
 # TARGET = x86_64-unknown-linux-gnu
 # TARGET = x86_64-apple-darwin 
+LIBTSM=libtsm/.libs/libtsm.a
 
 all:
 	$(DEFAULT)
@@ -195,14 +196,14 @@ lib: rlib dylib
 	&& echo "--- Built dylib" \
 	&& echo "--- Type 'make test' to test library"
 
-rlib: target-lib-dir src src/lib.rs $(SOURCE_FILES)
+rlib: $(LIBTSM) target-lib-dir src src/lib.rs $(SOURCE_FILES)
 	clear \
 	&& $(COMPILER) --target $(TARGET) $(COMPILER_FLAGS) --crate-type=rlib src/lib.rs -L "target/$(TARGET)/lib" --out-dir "target/$(TARGET)/lib/" \
 	&& clear \
 	&& echo "--- Built rlib" \
 	&& echo "--- Type 'make test' to test library"
 
-dylib: target-lib-dir src src/lib.rs $(SOURCE_FILES)
+dylib: $(LIBTSM) target-lib-dir src src/lib.rs $(SOURCE_FILES)
 	clear \
 	&& $(COMPILER) --target $(TARGET) $(COMPILER_FLAGS) --crate-type=dylib src/lib.rs -L "target/$(TARGET)/lib" --out-dir "target/$(TARGET)/lib/" \
 	&& clear \
@@ -321,3 +322,11 @@ loc:
 	&& echo "--- Counting lines of .rs files in 'src' (LOC):" \
 	&& find src/ -type f -name "*.rs" -exec cat {} \; | wc -l
 
+$(LIBTSM):
+	cd libtsm \
+	&& ./autogen.sh \
+	&& ./configure \
+	&& make
+
+.PHONY:
+	libtsm
