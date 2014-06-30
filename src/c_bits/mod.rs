@@ -21,25 +21,25 @@ pub mod libtsm {
   pub struct tsm_vte_write_cb;
 
   pub type tsm_age_t = u32;
-  pub type tsm_write_cb = extern "C" fn(*tsm_vte, *u8, size_t, c_void);
+  pub type tsm_write_cb = extern "C" fn(*const tsm_vte, *const u8, size_t, c_void);
   pub type tsm_screen_draw_cb = extern "C" fn(
-    con: *tsm_screen,
+    con: *const tsm_screen,
     id: u32,
     len: size_t,
     width: uint,
     posx: uint,
     posy: uint,
-    attr: *tsm_screen_attr,
+    attr: *const tsm_screen_attr,
     age: tsm_age_t,
-    data: *c_void
+    data: *mut c_void
   );
 
   extern {
-    pub fn tsm_screen_new(out: **tsm_screen, log: tsm_log_t, log_data: c_void) -> c_int;
-    pub fn tsm_screen_resize(con: *tsm_screen, x: c_uint, y: c_uint) -> c_int;
-    pub fn tsm_vte_new(out: **tsm_vte, con: *tsm_screen, write_cb: tsm_write_cb,
+    pub fn tsm_screen_new(out: *const *const tsm_screen, log: tsm_log_t, log_data: c_void) -> c_int;
+    pub fn tsm_screen_resize(con: *const tsm_screen, x: c_uint, y: c_uint) -> c_int;
+    pub fn tsm_vte_new(out: *const *const tsm_vte, con: *const tsm_screen, write_cb: tsm_write_cb,
                    data: c_void, log: tsm_log_t, log_data: c_void) -> c_int;
-    pub fn tsm_vte_input(vte: *tsm_vte, input: *u8, len: size_t);
-    pub fn tsm_screen_draw(con: *tsm_screen, draw_cb: tsm_screen_draw_cb, data: *mut c_void) -> tsm_age_t;
+    pub fn tsm_vte_input(vte: *const tsm_vte, input: *const u8, len: size_t);
+    pub fn tsm_screen_draw(con: *const tsm_screen, draw_cb: tsm_screen_draw_cb, data: *mut c_void) -> tsm_age_t;
   }
 }

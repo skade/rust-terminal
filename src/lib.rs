@@ -15,11 +15,11 @@ use c_bits::libtsm::*;
 pub mod c_bits;
 
 pub struct Screen {
-  pub screen: *tsm_screen,
+  pub screen: *const tsm_screen,
 }
 
 pub struct Vte {
-  vte: *tsm_vte,
+  vte: *const tsm_vte,
 }
 
 #[deriving(Show)]
@@ -30,7 +30,7 @@ pub enum ScreenError {
 }
 
 impl Screen {
-  fn new(screen: *tsm_screen) -> Screen {
+  fn new(screen: *const tsm_screen) -> Screen {
     Screen { screen: screen }
   }
 
@@ -78,7 +78,7 @@ impl Screen {
 }
 
 impl Vte {
-  fn new(vte: *tsm_vte) -> Vte {
+  fn new(vte: *const tsm_vte) -> Vte {
     Vte { vte: vte }
   }
 
@@ -87,7 +87,7 @@ impl Vte {
   }
 }
 
-extern fn write_cb(vte: *tsm_vte, ch: *u8, len: size_t, data: c_void) {}
+extern fn write_cb(vte: *const tsm_vte, ch: *const u8, len: size_t, data: c_void) {}
 
 fn error(err: i32) -> ScreenError {
   match err {
