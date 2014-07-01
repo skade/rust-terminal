@@ -25,10 +25,11 @@ pub mod libtsm {
   pub type tsm_screen_draw_cb = extern "C" fn(
     con: *const tsm_screen,
     id: u32,
+    ch: *const uint32_t,
     len: size_t,
-    width: uint,
-    posx: uint,
-    posy: uint,
+    width: c_uint,
+    posx: c_uint,
+    posy: c_uint,
     attr: *const tsm_screen_attr,
     age: tsm_age_t,
     data: *mut c_void

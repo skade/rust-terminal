@@ -10,7 +10,7 @@ use std::mem::transmute;
 
 #[deriving(Show,Copy)]
 struct State {
-  state: int
+  state: u32
 }
 
 fn main() {
@@ -42,10 +42,10 @@ fn main() {
         }
       }
       'p' => {
-        let state_ptr = &mut state as *mut _ as *mut c_void;
-        println!("{:i}", state.state)
+        let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
+        println!("before: {:u}", state.state)
         screen.draw(draw_cb, state_ptr);
-        println!("{:i}", state.state)
+        println!("after: {:u}", state.state)
       }
       'c' => {}
       _ => { fail!("unknown command!") }
@@ -57,20 +57,19 @@ fn main() {
 extern "C" fn draw_cb(
   con: *const tsm_screen,
   id: u32,
+  ch: *const uint32_t,
   len: size_t,
-  width: uint,
-  posx: uint,
-  posy: uint,
+  width: c_uint,
+  posx: c_uint,
+  posy: c_uint,
   attr: *const tsm_screen_attr,
   age: tsm_age_t,
   data: *mut c_void
 ) {
   unsafe {
-    println!("there")
-    let data = &mut *(data as *mut State);
-    println!("there2")
-    println!("{:i}", data.state)
-    println!("there3")
-    data.state = 10;
+    let data: &mut State = &mut *(data as *mut State);
+    //println!("{:u}", data.state)
+    data.state = data.state + 1;
+    //println!("{:u}", data.state)
   };
 }
