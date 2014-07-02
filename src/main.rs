@@ -4,13 +4,11 @@ extern crate libc;
 
 use terminal::Screen;
 use terminal::c_bits::libtsm::*;
-use libc::*;
-use std::str::from_utf8;
-use std::mem::transmute;
+use libc::{c_uint,c_void,size_t,uint32_t};
 
 #[deriving(Show,Copy)]
 struct State {
-  state: u32
+  last_attribute: Option<tsm_screen_attr>,
 }
 
 fn main() {
@@ -23,7 +21,7 @@ fn main() {
   let resize = screen.resize(width,height);
 
   let vte = screen.vte().unwrap();
-  let mut state = State { state: 1 };
+  let mut state = State { last_attribute: None};
 
   loop {
     let line = stdin.read_line();
@@ -43,9 +41,7 @@ fn main() {
       }
       'p' => {
         let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
-        println!("before: {:u}", state.state)
         screen.draw(draw_cb, state_ptr);
-        println!("after: {:u}", state.state)
       }
       'c' => {}
       _ => { fail!("unknown command!") }
@@ -68,8 +64,13 @@ extern "C" fn draw_cb(
 ) {
   unsafe {
     let data: &mut State = &mut *(data as *mut State);
-    //println!("{:u}", data.state)
-    data.state = data.state + 1;
-    //println!("{:u}", data.state)
+    println!{"{}", *attr}
+    let mut last_attribute;
+    if data.last_attribute.is_some() {
+      last_attribute = data.last_attribute.unwrap();
+      println!{"{}", last_attribute}
+      println!("{:b}", last_attribute == *attr)
+    }
+    data.last_attribute = Some(*attr.clone());
   };
 }

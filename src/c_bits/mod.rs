@@ -1,7 +1,10 @@
+#![allow(non_camel_case_types)]
+
 pub mod libtsm {
   use libc::*;
+  use serialize::{Encodable};
 
-  #[deriving(PartialEq,Show,Clone)]
+  #[deriving(PartialEq,Show,Clone,Encodable)]
   pub struct tsm_screen_attr {
     pub fccode: i8, /* foreground color code or <0 for rgb */
     pub bccode: i8,      /* background color code or <0 for rgb */

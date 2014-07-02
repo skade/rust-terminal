@@ -1,11 +1,11 @@
 #![crate_type = "lib"]
 #![crate_id = "terminal#0.0.1"]
 #![feature(globs,phase)]
-#![phase(syntax, link)] extern crate log;
+//#![phase(syntax, link)] extern crate log;
 
 extern crate libc;
+extern crate serialize;
 
-use std::io::IoError;
 use libc::*;
 
 use libc::consts::os::posix88::{EINVAL,ENOMEM};
@@ -87,7 +87,7 @@ impl Vte {
   }
 }
 
-extern fn write_cb(vte: *const tsm_vte, ch: *const u8, len: size_t, data: c_void) {}
+extern fn write_cb(_: *const tsm_vte, _: *const u8, _: size_t, _: c_void) {}
 
 fn error(err: i32) -> ScreenError {
   match err {
