@@ -1,11 +1,13 @@
 #![allow(non_camel_case_types)]
 
 pub mod libtsm {
-  use libc::{c_void, c_uint, c_int, size_t, uint32_t};
+  use std::num::{FromPrimitive};
+  use libc::{c_void, c_uint, c_int, size_t, uint32_t, c_char};
   use collections::enum_set::{EnumSet,CLike};
-  use std::mem;
 
-  #[deriving(PartialEq,Show,Clone)]
+  static RGB_LEVELS : &'static [u8] = &[0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff];
+
+  #[deriving(PartialEq,Show,Clone,FromPrimitive)]
   #[repr(u8)]
   pub enum AttributeFlags {
     Bold,
@@ -15,7 +17,7 @@ pub mod libtsm {
     Blink
   }
 
-  #[deriving(PartialEq,Show,Clone)]
+  #[deriving(PartialEq,Show,Clone,FromPrimitive)]
   #[repr(u8)]
   pub enum ScreenFlags {
     TSM_SCREEN_INSERT_MODE,
@@ -28,21 +30,28 @@ pub mod libtsm {
   }
 
   impl CLike for AttributeFlags {
-      fn to_uint(&self) -> uint {
-          *self as uint
+    fn to_uint(&self) -> uint {
+      *self as uint
+    }
+
+    fn from_uint(v: uint) -> AttributeFlags {
+      match FromPrimitive::from_uint(v) {
+        Some(v) => v,
+        None => fail!("Decoding of uint into AttributeFlags failed!")
       }
-      fn from_uint(v: uint) -> AttributeFlags {
-          unsafe { mem::transmute(v as u8) }
-      }
+    }
   }
 
   impl CLike for ScreenFlags {
-      fn to_uint(&self) -> uint {
-          *self as uint
+    fn to_uint(&self) -> uint {
+      *self as uint
+    }
+    fn from_uint(v: uint) -> ScreenFlags {
+      match FromPrimitive::from_uint(v) {
+        Some(v) => v,
+        None => fail!("Decoding of uint into ScreenFlags failed!")
       }
-      fn from_uint(v: uint) -> ScreenFlags {
-          unsafe { mem::transmute(v as u8) }
-      }
+    }
   }
 
   #[deriving(PartialEq,Show,Clone)]
@@ -77,8 +86,7 @@ pub mod libtsm {
   }
 
   fn get_rgb_index(value: u8) -> u8 {
-    let rgb_levels: Vec<int> = vec![0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff];
-    rgb_levels.iter().position(|level| *level == value as int).unwrap() as u8
+    RGB_LEVELS.iter().position(|level| *level == value).unwrap() as u8
   }
 
   impl tsm_screen_attr {
@@ -97,9 +105,9 @@ pub mod libtsm {
 
   pub struct tsm_screen;
   pub struct tsm_vte;
-  pub struct tsm_log_t;
   pub struct log_data;
   pub struct tsm_vte_write_cb;
+  pub struct va_list;
 
   pub type tsm_age_t = u32;
   pub type tsm_write_cb = extern "C" fn(*const tsm_vte, *const u8, size_t, c_void);
@@ -116,16 +124,26 @@ pub mod libtsm {
     data: *mut c_void
   );
 
-  extern {
-    pub fn tsm_screen_new(out: *const *const tsm_screen, log: tsm_log_t, log_data: c_void) -> c_int;
-    pub fn tsm_screen_resize(con: *const tsm_screen, x: c_uint, y: c_uint) -> c_int;
-    pub fn tsm_vte_new(out: *const *const tsm_vte, con: *const tsm_screen, write_cb: tsm_write_cb,
-                   data: c_void, log: tsm_log_t, log_data: c_void) -> c_int;
-    pub fn tsm_vte_input(vte: *const tsm_vte, input: *const u8, len: size_t);
-    pub fn tsm_screen_draw(con: *const tsm_screen, draw_cb: tsm_screen_draw_cb, data: *mut c_void) -> tsm_age_t;
+  pub type tsm_log_t = extern "C" fn(
+    data: *mut c_void,
+    line: c_int,
+    func: *const c_char,
+    subs: *const c_char,
+    sev: c_uint,
+    format: *const c_char,
+    args: va_list
+  );
 
-    pub fn tsm_screen_get_cursor_x(con: *const tsm_screen) -> c_uint;
-    pub fn tsm_screen_get_cursor_y(con: *const tsm_screen) -> c_uint;
-    pub fn tsm_screen_get_flags(con: *const tsm_screen) -> EnumSet<ScreenFlags>;
+  extern {
+    pub fn tsm_screen_new(out: &mut *mut tsm_screen, log: Option<tsm_log_t>, log_data: c_void) -> c_int;
+    pub fn tsm_screen_resize(con: *mut tsm_screen, x: c_uint, y: c_uint) -> c_int;
+    pub fn tsm_vte_new(out: &mut *mut tsm_vte, con: *mut tsm_screen, write_cb: Option<tsm_write_cb>,
+                   data: c_void, log: Option<tsm_log_t>, log_data: c_void) -> c_int;
+    pub fn tsm_vte_input(vte: *mut tsm_vte, input: *const u8, len: size_t);
+    pub fn tsm_screen_draw(con: *mut tsm_screen, draw_cb: tsm_screen_draw_cb, data: *mut c_void) -> tsm_age_t;
+
+    pub fn tsm_screen_get_cursor_x(con: *mut tsm_screen) -> c_uint;
+    pub fn tsm_screen_get_cursor_y(con: *mut tsm_screen) -> c_uint;
+    pub fn tsm_screen_get_flags(con: *mut tsm_screen) -> EnumSet<ScreenFlags>;
   }
 }

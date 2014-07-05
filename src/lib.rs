@@ -14,11 +14,11 @@ use c_bits::libtsm::*;
 pub mod c_bits;
 
 pub struct Screen {
-  pub screen: *const tsm_screen,
+ screen: *mut tsm_screen,
 }
 
 pub struct Vte {
-  vte: *const tsm_vte,
+  vte: *mut tsm_vte,
 }
 
 #[deriving(Show)]
@@ -29,14 +29,14 @@ pub enum ScreenError {
 }
 
 impl Screen {
-  fn new(screen: *const tsm_screen) -> Screen {
+  fn new(screen: *mut tsm_screen) -> Screen {
     Screen { screen: screen }
   }
 
   pub fn open() -> Result<Screen, ScreenError> {
     unsafe {
-      let screen = ptr::null();
-      let err = tsm_screen_new(&screen, *ptr::null(), *ptr::null());
+      let mut screen = ptr::mut_null();
+      let err = tsm_screen_new(&mut screen, None, *ptr::mut_null());
 
       if err > 0 {
         Err(error(err))
@@ -58,10 +58,10 @@ impl Screen {
     }
   }
 
-  pub fn cursor_pos(&self) -> (int,int) {
+  pub fn cursor_pos(&self) -> (u32,u32) {
     unsafe {
-      let x = tsm_screen_get_cursor_x(self.screen) as int;
-      let y = tsm_screen_get_cursor_y(self.screen) as int;
+      let x = tsm_screen_get_cursor_x(self.screen);
+      let y = tsm_screen_get_cursor_y(self.screen);
       (x,y)
     }
   }
@@ -75,8 +75,8 @@ impl Screen {
 
   pub fn vte(&self) -> Result<Vte, ScreenError> {
     unsafe {
-      let vte = ptr::null();
-      let err = tsm_vte_new(&vte, self.screen, write_cb, *ptr::null(), *ptr::null(), *ptr::null());
+      let mut vte = ptr::mut_null();
+      let err = tsm_vte_new(&mut vte, self.screen, None, *ptr::mut_null(), None, *ptr::mut_null());
 
       if err > 0 {
         Err(error(err))
@@ -92,16 +92,14 @@ impl Screen {
 }
 
 impl Vte {
-  fn new(vte: *const tsm_vte) -> Vte {
+  fn new(vte: *mut tsm_vte) -> Vte {
     Vte { vte: vte }
   }
 
   pub fn feed(&self, input: &[u8]) {
-    unsafe { tsm_vte_input(self.vte, input.as_ptr(), input.len() as u64) }
+    unsafe { tsm_vte_input(self.vte, input.as_ptr(), input.len() as size_t) }
   }
 }
-
-extern fn write_cb(_: *const tsm_vte, _: *const u8, _: size_t, _: c_void) {}
 
 fn error(err: i32) -> ScreenError {
   match err {

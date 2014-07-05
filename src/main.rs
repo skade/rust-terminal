@@ -7,7 +7,8 @@ extern crate getopts;
 
 use getopts::{reqopt,getopts};
 use std::os;
-use terminal::Screen;
+use std::io::IoResult;
+use terminal::{Screen,Vte,ScreenError};
 use terminal::c_bits::libtsm::*;
 use libc::{c_uint,c_void,size_t,uint32_t};
 use std::char::from_u32;
@@ -21,8 +22,8 @@ struct State {
 
 #[deriving(Show,Encodable)]
 struct CursorState {
-  x: int,
-  y: int,
+  x: u32,
+  y: u32,
   visible: bool
 }
 
@@ -38,7 +39,6 @@ struct Attribute {
 
 fn main() {
   let args: Vec<String> = os::args();
-  let mut stdin = std::io::stdio::stdin();
 
   let opts = [
       reqopt("h", "height", "the height of the console", "HEIGHT"),
@@ -51,46 +51,52 @@ fn main() {
   let width: u32 = from_str(matches.opt_str("w").unwrap().as_slice()).unwrap();
   let height: u32 = from_str(matches.opt_str("h").unwrap().as_slice()).unwrap();
 
-  let screen_opt = Screen::open();
-  let screen = screen_opt.unwrap();
-  let resize = screen.resize(width,height);
-  match resize {
-    Ok(()) => {},
-    Err(_reason) => { fail!("error resizing screen") }
-  }
+  let (screen, vte) = match setup_screen(width, height) {
+    Err(reason) => { fail!("screen setup failed for {}", reason) }
+    Ok(v) => v
+  };
 
-  let vte = screen.vte().unwrap();
+  match run(screen, vte) {
+    Ok(()) => {},
+    Err(reason) => { fail!("runloop failed for {}", reason) }
+  }
+}
+
+fn setup_screen(width: u32, height: u32) -> Result<(Screen,Vte), ScreenError> {
+  let screen = try!(Screen::open());
+  try!(screen.resize(width,height));
+  let vte = try!(screen.vte());
+  Ok((screen,vte))
+}
+
+fn run(screen: Screen, vte: Vte) -> IoResult<()> {
+  let mut stdin = std::io::stdio::stdin();
 
   loop {
-    let line = stdin.read_line();
-    if line.is_err() {
-      return;
-    }
-    match line.unwrap().as_slice().chars().next().unwrap() {
-      'd' => {
-        let next_line = stdin.read_line();
-        if next_line.is_ok() {
-          let n: uint = from_str(next_line.unwrap().as_slice().trim()).unwrap();
-          let result = stdin.read_exact(n);
-          vte.feed(result.unwrap().as_slice())
-        } else {
-          return;
-        }
+    let line = try!(stdin.read_line());
+
+    match line.as_slice().chars().next() {
+      Some('d') => {
+        let next_line = try!(stdin.read_line());
+        let n: uint = from_str(next_line.as_slice().trim()).unwrap();
+        let result = try!(stdin.read_exact(n));
+        vte.feed(result.as_slice())
       }
-      'p' => {
+      Some('p') => {
         let mut state = State { rendered: vec![] };
         let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
         screen.draw(draw_cb, state_ptr);
         let encoded = json::encode(&state);
         println!("{}", encoded)
       }
-      'c' => {
+      Some('c') => {
         let (x,y) = screen.cursor_pos();
         let visible = screen.cursor_visible();
         let c_state = CursorState { x: x, y: y, visible: visible };
         let encoded = json::encode(&c_state);
         println!("{}", encoded)
       }
+      None => { fail!("empty input!") }
       _ => { fail!("unknown command!") }
     }
   }
