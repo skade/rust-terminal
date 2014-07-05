@@ -5,6 +5,7 @@
 
 extern crate libc;
 extern crate serialize;
+extern crate collections;
 
 use libc::*;
 
@@ -56,6 +57,21 @@ impl Screen {
       } else {
         Ok(())
       }
+    }
+  }
+
+  pub fn cursor_pos(&self) -> (int,int) {
+    unsafe {
+      let x = tsm_screen_get_cursor_x(self.screen) as int;
+      let y = tsm_screen_get_cursor_y(self.screen) as int;
+      (x,y)
+    }
+  }
+
+  pub fn cursor_visible(&self) -> bool {
+    unsafe {
+      let flags = tsm_screen_get_flags(self.screen);
+      !flags.contains_elem(TSM_SCREEN_HIDE_CURSOR)
     }
   }
 
