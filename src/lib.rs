@@ -1,14 +1,12 @@
 #![crate_type = "lib"]
 #![crate_id = "terminal#0.0.1"]
 #![feature(globs,phase)]
-//#![phase(syntax, link)] extern crate log;
 
 extern crate libc;
 extern crate serialize;
 extern crate collections;
 
-use libc::*;
-
+use libc::{c_void,size_t};
 use libc::consts::os::posix88::{EINVAL,ENOMEM};
 use std::ptr;
 use c_bits::libtsm::*;

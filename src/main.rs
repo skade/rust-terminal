@@ -3,7 +3,10 @@ extern crate terminal;
 extern crate libc;
 extern crate serialize;
 extern crate collections;
+extern crate getopts;
 
+use getopts::{reqopt,getopts};
+use std::os;
 use terminal::Screen;
 use terminal::c_bits::libtsm::*;
 use libc::{c_uint,c_void,size_t,uint32_t};
@@ -34,9 +37,19 @@ struct Attribute {
 }
 
 fn main() {
+  let args: Vec<String> = os::args();
   let mut stdin = std::io::stdio::stdin();
-  let width = 82;
-  let height = 21;
+
+  let opts = [
+      reqopt("h", "height", "the height of the console", "HEIGHT"),
+      reqopt("w", "width", "the width of the console", "WIDTH")
+  ];
+  let matches = match getopts(args.tail(), opts) {
+     Ok(m) => { m }
+     Err(f) => { fail!(f.to_str()) }
+  };
+  let width: u32 = from_str(matches.opt_str("w").unwrap().as_slice()).unwrap();
+  let height: u32 = from_str(matches.opt_str("h").unwrap().as_slice()).unwrap();
 
   let screen_opt = Screen::open();
   let screen = screen_opt.unwrap();
@@ -123,27 +136,10 @@ impl Attribute {
 
 impl<S: Encoder<E>, E> Encodable<S, E> for Attribute {
   fn encode(&self, e: &mut S) -> Result<(), E> {
-    let mut emit_length: uint = 0;
-    if self.fg.is_some() {
-      emit_length = emit_length + 1
-    }
-    if self.bg.is_some() {
-      emit_length = emit_length + 1
-    }
-    if self.bold {
-      emit_length = emit_length + 1
-    }
-    if self.underline {
-      emit_length = emit_length + 1
-    }
-    if self.inverse {
-      emit_length = emit_length + 1
-    }
-    if self.blink {
-      emit_length = emit_length + 1
-    }
+    let fields_to_emit = vec![self.fg.is_some(), self.bg.is_some(), self.bold, self.underline, self.inverse, self.blink];
+    let no_of_fields_to_emit = fields_to_emit.iter().filter(|val| **val).count();
 
-    e.emit_map(emit_length, |e| {
+    e.emit_map(no_of_fields_to_emit, |e| {
       let mut key_pos = 0;
       if self.fg.is_some() {
         try!(e.emit_map_elt_key(key_pos, |e| "fg".encode(e)));
