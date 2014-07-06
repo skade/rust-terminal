@@ -8,6 +8,7 @@ extern crate getopts;
 use getopts::{reqopt,getopts};
 use std::os;
 use std::io::IoResult;
+use std::io::EndOfFile;
 use terminal::{Screen,Vte,ScreenError};
 use terminal::c_bits::libtsm::*;
 use libc::{c_uint,c_void,size_t,uint32_t};
@@ -58,7 +59,11 @@ fn main() {
 
   match run(screen, vte) {
     Ok(()) => {},
-    Err(reason) => { fail!("runloop failed for {}", reason) }
+    Err(reason) => {
+      if !(reason.kind == EndOfFile) {
+        fail!("runloop failed for {}", reason)
+      }
+    }
   }
 }
 
