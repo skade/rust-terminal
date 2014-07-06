@@ -35,10 +35,7 @@ pub mod libtsm {
     }
 
     fn from_uint(v: uint) -> AttributeFlags {
-      match FromPrimitive::from_uint(v) {
-        Some(v) => v,
-        None => fail!("Decoding of uint into AttributeFlags failed!")
-      }
+      FromPrimitive::from_uint(v).expect("Decoding of uint into AttributeFlags failed!")
     }
   }
 
@@ -47,10 +44,7 @@ pub mod libtsm {
       *self as uint
     }
     fn from_uint(v: uint) -> ScreenFlags {
-      match FromPrimitive::from_uint(v) {
-        Some(v) => v,
-        None => fail!("Decoding of uint into ScreenFlags failed!")
-      }
+      FromPrimitive::from_uint(v).expect("Decoding of uint into ScreenFlags failed!")
     }
   }
 
