@@ -131,7 +131,7 @@ pub mod libtsm {
   extern {
     pub fn tsm_screen_new(out: *mut *mut tsm_screen, log: Option<tsm_log_t>, log_data: *mut c_void) -> c_int;
     pub fn tsm_screen_resize(con: *mut tsm_screen, x: c_uint, y: c_uint) -> c_int;
-    pub fn tsm_vte_new(out: *mut *mut tsm_vte, con: *mut tsm_screen, write_cb: Option<tsm_write_cb>,
+    pub fn tsm_vte_new(out: *mut *mut tsm_vte, con: *mut tsm_screen, write_cb: tsm_write_cb,
                    data: *mut c_void, log: Option<tsm_log_t>, log_data: *mut c_void) -> c_int;
     pub fn tsm_vte_input(vte: *mut tsm_vte, input: *const u8, len: size_t);
     pub fn tsm_screen_draw(con: *mut tsm_screen, draw_cb: tsm_screen_draw_cb, data: *mut c_void) -> tsm_age_t;

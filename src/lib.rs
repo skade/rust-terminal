@@ -76,7 +76,7 @@ impl Screen {
   pub fn vte(&self) -> Result<Vte, ScreenError> {
     unsafe {
       let mut vte = ptr::mut_null();
-      let err = tsm_vte_new(&mut vte, self.screen, None, ptr::mut_null(), None, ptr::mut_null());
+      let err = tsm_vte_new(&mut vte, self.screen, write_cb, ptr::mut_null(), None, ptr::mut_null());
 
       if err > 0 {
         Err(error(err))
@@ -100,6 +100,8 @@ impl Vte {
     unsafe { tsm_vte_input(self.vte, input.as_ptr(), input.len() as size_t) }
   }
 }
+
+extern "C" fn write_cb(_: *const tsm_vte, _: *const u8, _: size_t, _: c_void) {}
 
 fn error(err: i32) -> ScreenError {
   match err {
