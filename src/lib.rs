@@ -36,7 +36,7 @@ impl Screen {
   pub fn open() -> Result<Screen, ScreenError> {
     unsafe {
       let mut screen = ptr::mut_null();
-      let err = tsm_screen_new(&mut screen, None, *ptr::mut_null());
+      let err = tsm_screen_new(&mut screen, None, ptr::mut_null());
 
       if err > 0 {
         Err(error(err))
@@ -76,7 +76,7 @@ impl Screen {
   pub fn vte(&self) -> Result<Vte, ScreenError> {
     unsafe {
       let mut vte = ptr::mut_null();
-      let err = tsm_vte_new(&mut vte, self.screen, None, *ptr::mut_null(), None, *ptr::mut_null());
+      let err = tsm_vte_new(&mut vte, self.screen, None, ptr::mut_null(), None, ptr::mut_null());
 
       if err > 0 {
         Err(error(err))
