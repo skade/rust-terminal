@@ -61,11 +61,11 @@ pub mod libtsm {
     pub flags: EnumSet<AttributeFlags>,    /* misc flags */
   }
 
-  fn get_color(code: i8, r: u8, g: u8, b: u8) -> Option<i8> {
-    if code == -1 {
-      Some(get_rgb_color(r, g, b) as i8)
+  fn get_color(code: i8, r: u8, g: u8, b: u8) -> Option<u8> {
+    if code < 0 {
+      Some(get_rgb_color(r, g, b))
     } else if code >= 0 && code < 16 {
-      Some(code)
+      Some(code.to_u8().unwrap())
     } else {
       None
     }
@@ -80,15 +80,15 @@ pub mod libtsm {
   }
 
   fn get_rgb_index(value: u8) -> u8 {
-    RGB_LEVELS.iter().position(|level| *level == value).unwrap() as u8
+    RGB_LEVELS.iter().position(|level| *level == value).expect("No index for value found").to_u8().unwrap()
   }
 
   impl tsm_screen_attr {
-    pub fn get_fg(&self) -> Option<i8> {
+    pub fn get_fg(&self) -> Option<u8> {
       get_color(self.fccode, self.fr, self.fg, self.fb)
     }
 
-    pub fn get_bg(&self) -> Option<i8> {
+    pub fn get_bg(&self) -> Option<u8> {
       get_color(self.bccode, self.br, self.bg, self.bb)
     }
 

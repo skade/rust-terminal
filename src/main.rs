@@ -29,8 +29,8 @@ struct CursorState {
 
 #[deriving(PartialEq,Show)]
 struct Attribute {
-  fg: Option<i8>,
-  bg: Option<i8>,
+  fg: Option<u8>,
+  bg: Option<u8>,
   bold: bool,
   underline: bool,
   inverse: bool,
@@ -78,7 +78,7 @@ fn run(screen: Screen, vte: Vte) -> IoResult<()> {
     match line.as_slice().chars().next() {
       Some('d') => {
         let next_line = try!(stdin.read_line());
-        let n: uint = from_str(next_line.as_slice().trim()).unwrap();
+        let n: uint = from_str(next_line.as_slice().trim()).expect("d must be followed by int");
         let result = try!(stdin.read_exact(n));
         vte.feed(result.as_slice())
       }
