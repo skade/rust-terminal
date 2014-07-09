@@ -1,5 +1,5 @@
 #![crate_type = "lib"]
-#![crate_id = "terminal#0.0.1"]
+#![crate_name = "terminal"]
 #![feature(globs,phase)]
 
 extern crate libc;

@@ -13,6 +13,7 @@ use terminal::{Screen,Vte,ScreenError};
 use terminal::c_bits::libtsm::*;
 use libc::{c_uint,c_void,size_t,uint32_t};
 use std::char::from_u32;
+use std::str::from_char;
 use serialize::{Encodable,Encoder};
 use serialize::json;
 
@@ -47,7 +48,7 @@ fn main() {
   ];
   let matches = match getopts(args.tail(), opts) {
      Ok(m) => { m }
-     Err(f) => { fail!(f.to_str()) }
+     Err(f) => { fail!("{}", f) }
   };
   let width: u32 = from_str(matches.opt_str("w").unwrap().as_slice()).unwrap();
   let height: u32 = from_str(matches.opt_str("h").unwrap().as_slice()).unwrap();
@@ -121,7 +122,7 @@ impl State {
 
   fn push_new_cell(&mut self, ch: char, attr: Attribute) {
     let current_line  = self.rendered.mut_last().unwrap();
-    let element = (ch.to_str().to_string(), attr);
+    let element = (from_char(ch), attr);
     current_line.push(element);
   }
 }
@@ -211,7 +212,7 @@ extern "C" fn draw_cb(
     }
 
     if data.rendered.len() == (posy as uint) {
-      data.rendered.push(vec![(current_char.to_str().to_string(), attribute)]);
+      data.rendered.push(vec![(from_char(current_char), attribute)]);
       return
     }
 
