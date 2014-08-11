@@ -128,6 +128,7 @@ pub mod libtsm {
     args: va_list
   );
 
+  #[link(name = "tsm")]
   extern {
     pub fn tsm_screen_new(out: *mut *mut tsm_screen, log: Option<tsm_log_t>, log_data: *mut c_void) -> c_int;
     pub fn tsm_screen_resize(con: *mut tsm_screen, x: c_uint, y: c_uint) -> c_int;
