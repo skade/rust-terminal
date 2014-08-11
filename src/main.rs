@@ -122,7 +122,7 @@ impl State {
 
   fn push_new_cell(&mut self, ch: char, attr: Attribute) {
     let current_line  = self.rendered.mut_last().unwrap();
-    let element = (from_char(ch), attr);
+    let element = (ch.to_string(), attr);
     current_line.push(element);
   }
 }
